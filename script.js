@@ -126,7 +126,12 @@ function displayQuestion() {
         optionDiv.appendChild(textDiv);
         
         // Обработчик клика
-        optionDiv.addEventListener('click', () => selectOption(option.letter));
+        optionDiv.addEventListener('click', () => {
+            // Проверяем, не отвечен ли уже вопрос
+            if (!userAnswers[currentQuestionIndex]) {
+                selectOption(option.letter);
+            }
+        });
         
         optionsContainer.appendChild(optionDiv);
     });
@@ -164,13 +169,18 @@ function displayQuestion() {
             feedback.className = 'feedback show incorrect';
         }
         
-        // Блокируем все варианты, так как вопрос уже пройден
+        // Блокируем все варианты, так как вопрос уже пройден - нельзя изменить ответ
         optionsContainer.querySelectorAll('.option').forEach(opt => {
             opt.classList.add('disabled');
+            opt.style.pointerEvents = 'none';
         });
     } else {
-        // Вопрос еще не пройден - скрываем обратную связь
+        // Вопрос еще не пройден - скрываем обратную связь и разрешаем выбор
         feedback.classList.remove('show', 'correct', 'incorrect');
+        optionsContainer.querySelectorAll('.option').forEach(opt => {
+            opt.classList.remove('disabled');
+            opt.style.pointerEvents = 'auto';
+        });
     }
     
     // Обновляем кнопки навигации
@@ -190,7 +200,13 @@ function selectOption(letter) {
     const optionsContainer = document.getElementById('optionsContainer');
     const feedback = document.getElementById('feedback');
     
-    // Убираем предыдущий выбор
+    // Проверяем, не отвечен ли уже вопрос
+    if (userAnswers[currentQuestionIndex]) {
+        // Вопрос уже отвечен - не позволяем изменить ответ
+        return;
+    }
+    
+    // Убираем предыдущий выбор (на случай, если пользователь быстро кликает)
     optionsContainer.querySelectorAll('.option').forEach(opt => {
         opt.classList.remove('selected', 'correct', 'incorrect', 'disabled');
     });
@@ -236,9 +252,11 @@ function selectOption(letter) {
         }
     }
     
-    // Блокируем все варианты
+    // Блокируем все варианты - нельзя изменить ответ
     optionsContainer.querySelectorAll('.option').forEach(opt => {
         opt.classList.add('disabled');
+        // Убираем обработчик клика, чтобы предотвратить повторный выбор
+        opt.style.pointerEvents = 'none';
     });
     
     updateStats();
