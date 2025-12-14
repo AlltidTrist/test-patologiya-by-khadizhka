@@ -528,52 +528,69 @@ function initOnlineCounter() {
         userRef.set({
             online: true,
             lastSeen: firebase.database.ServerValue.TIMESTAMP
+        }).then(() => {
+            console.log('Пользователь добавлен в онлайн');
+            isOnline = true;
+        }).catch((error) => {
+            console.error('Ошибка добавления пользователя:', error);
+            initSimpleCounter();
         });
         
         // Удаляем пользователя при закрытии страницы
-        userRef.onDisconnect().remove();
+        userRef.onDisconnect().remove().catch((error) => {
+            console.error('Ошибка настройки onDisconnect:', error);
+        });
         
         // Обновляем время последней активности каждые 10 секунд
         setInterval(() => {
             if (userRef && isOnline) {
                 userRef.update({
                     lastSeen: firebase.database.ServerValue.TIMESTAMP
+                }).catch((error) => {
+                    console.error('Ошибка обновления активности:', error);
                 });
             }
         }, 10000);
         
         // Слушаем изменения количества онлайн пользователей
         onlineUsersRef.on('value', (snapshot) => {
-            if (snapshot.exists()) {
-                const users = snapshot.val();
-                const now = Date.now();
-                let count = 0;
-                
-                // Подсчитываем активных пользователей (активны в последние 30 секунд)
-                for (let key in users) {
-                    const user = users[key];
-                    if (user.online && user.lastSeen) {
-                        const timeDiff = now - user.lastSeen;
-                        if (timeDiff < 30000) { // 30 секунд
-                            count++;
+            try {
+                if (snapshot.exists()) {
+                    const users = snapshot.val();
+                    const now = Date.now();
+                    let count = 0;
+                    
+                    // Подсчитываем активных пользователей (активны в последние 30 секунд)
+                    for (let key in users) {
+                        if (users.hasOwnProperty(key)) {
+                            const user = users[key];
+                            if (user && user.online && user.lastSeen) {
+                                const timeDiff = now - user.lastSeen;
+                                if (timeDiff < 30000) { // 30 секунд
+                                    count++;
+                                }
+                            }
                         }
                     }
+                    
+                    // Обновляем отображение
+                    const onlineCountElement = document.getElementById('onlineCount');
+                    if (onlineCountElement) {
+                        onlineCountElement.textContent = count || 1;
+                    }
+                } else {
+                    // Нет пользователей
+                    const onlineCountElement = document.getElementById('onlineCount');
+                    if (onlineCountElement) {
+                        onlineCountElement.textContent = '1';
+                    }
                 }
-                
-                // Обновляем отображение
-                const onlineCountElement = document.getElementById('onlineCount');
-                if (onlineCountElement) {
-                    onlineCountElement.textContent = count;
-                }
-                
-                isOnline = true;
-            } else {
-                // Нет пользователей
-                const onlineCountElement = document.getElementById('onlineCount');
-                if (onlineCountElement) {
-                    onlineCountElement.textContent = '1';
-                }
+            } catch (error) {
+                console.error('Ошибка обработки данных Firebase:', error);
             }
+        }, (error) => {
+            console.error('Ошибка чтения данных Firebase:', error);
+            initSimpleCounter();
         });
         
         // Обновляем активность при действиях пользователя
@@ -591,6 +608,8 @@ function updateUserActivity() {
     if (userRef && isOnline) {
         userRef.update({
             lastSeen: firebase.database.ServerValue.TIMESTAMP
+        }).catch((error) => {
+            console.error('Ошибка обновления активности пользователя:', error);
         });
     }
 }
