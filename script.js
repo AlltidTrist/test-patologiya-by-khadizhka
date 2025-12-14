@@ -493,6 +493,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Инициализация чата
     initChat();
+    
+    // Инициализация поиска
+    initSearch();
 });
 
 // Функции для счетчика онлайн пользователей с Firebase
@@ -876,5 +879,132 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Функции для поиска вопросов
+function initSearch() {
+    const openSearchBtn = document.getElementById('openSearchBtn');
+    const closeSearchBtn = document.getElementById('closeSearchBtn');
+    const searchModal = document.getElementById('searchModal');
+    const searchBtn = document.getElementById('searchBtn');
+    const searchInput = document.getElementById('searchInput');
+    
+    // Открытие модального окна поиска
+    openSearchBtn.addEventListener('click', () => {
+        searchModal.classList.add('show');
+        searchInput.focus();
+    });
+    
+    // Закрытие модального окна
+    closeSearchBtn.addEventListener('click', () => {
+        searchModal.classList.remove('show');
+    });
+    
+    // Закрытие при клике вне модального окна
+    searchModal.addEventListener('click', (e) => {
+        if (e.target === searchModal) {
+            searchModal.classList.remove('show');
+        }
+    });
+    
+    // Поиск по кнопке
+    searchBtn.addEventListener('click', performSearch);
+    
+    // Поиск по Enter
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+}
+
+function performSearch() {
+    const searchInput = document.getElementById('searchInput');
+    const searchTerm = searchInput.value.trim().toLowerCase();
+    const resultsContainer = document.getElementById('searchResults');
+    const resultsInfo = document.getElementById('searchResultsInfo');
+    
+    if (searchTerm.length < 2) {
+        resultsContainer.innerHTML = '<div class="search-placeholder">Введите минимум 2 символа для поиска</div>';
+        resultsInfo.textContent = '';
+        return;
+    }
+    
+    // Поиск по вопросам и вариантам ответов
+    const results = [];
+    
+    questions.forEach((question, index) => {
+        const questionText = question.question.toLowerCase();
+        const questionNumber = index + 1;
+        
+        // Поиск в тексте вопроса
+        if (questionText.includes(searchTerm)) {
+            results.push({
+                question: question,
+                number: questionNumber,
+                matchType: 'question'
+            });
+        } else {
+            // Поиск в вариантах ответов
+            question.options.forEach(option => {
+                if (option.text.toLowerCase().includes(searchTerm)) {
+                    // Проверяем, не добавлен ли уже этот вопрос
+                    const alreadyAdded = results.some(r => r.number === questionNumber);
+                    if (!alreadyAdded) {
+                        results.push({
+                            question: question,
+                            number: questionNumber,
+                            matchType: 'option'
+                        });
+                    }
+                }
+            });
+        }
+    });
+    
+    // Отображаем результаты
+    displaySearchResults(results, searchTerm);
+}
+
+function displaySearchResults(results, searchTerm) {
+    const resultsContainer = document.getElementById('searchResults');
+    const resultsInfo = document.getElementById('searchResultsInfo');
+    
+    if (results.length === 0) {
+        resultsContainer.innerHTML = '<div class="search-placeholder">Ничего не найдено по запросу "' + escapeHtml(searchTerm) + '"</div>';
+        resultsInfo.textContent = 'Найдено: 0 вопросов';
+        return;
+    }
+    
+    resultsInfo.textContent = `Найдено: ${results.length} ${results.length === 1 ? 'вопрос' : results.length < 5 ? 'вопроса' : 'вопросов'}`;
+    
+    resultsContainer.innerHTML = '';
+    
+    results.forEach(result => {
+        const question = result.question;
+        const correctOption = question.options.find(opt => opt.letter === question.correct);
+        const correctAnswerText = correctOption ? correctOption.text : 'Ответ не найден';
+        const correctAnswerNumber = letterToNumber(question.correct);
+        
+        const resultItem = document.createElement('div');
+        resultItem.className = 'search-result-item';
+        
+        resultItem.innerHTML = `
+            <div class="search-result-header">
+                <span class="search-result-number">Вопрос #${result.number}</span>
+                <span class="search-result-category">${question.category}</span>
+            </div>
+            <div class="search-result-question">${escapeHtml(question.question)}</div>
+            <div class="search-result-answer">
+                <div class="search-result-answer-label">✓ Правильный ответ (${correctAnswerNumber}):</div>
+                <div class="search-result-answer-text">${escapeHtml(correctAnswerText)}</div>
+            </div>
+        `;
+        
+        resultsContainer.appendChild(resultItem);
+    });
+    
+    // Прокручиваем вверх
+    resultsContainer.scrollTop = 0;
 }
 

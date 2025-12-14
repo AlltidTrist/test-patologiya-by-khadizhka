@@ -27,6 +27,7 @@
                     <span class="online-icon">👥</span>
                     <span id="onlineCount">0</span> онлайн
                 </div>
+                <button class="btn btn-secondary search-btn" id="openSearchBtn">🔍 Поиск</button>
             </div>
         </header>
 
@@ -110,6 +111,24 @@
                     <input type="text" id="chatMessageInput" placeholder="Введите сообщение..." maxlength="500">
                     <button id="chatSendBtn" class="btn btn-primary">Отправить</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно поиска -->
+    <div class="modal-overlay" id="searchModal">
+        <div class="modal-content search-modal-content">
+            <div class="search-modal-header">
+                <h2>🔍 Поиск вопросов</h2>
+                <button class="modal-close-btn" id="closeSearchBtn">×</button>
+            </div>
+            <div class="search-input-wrapper">
+                <input type="text" id="searchInput" placeholder="Введите слово или фразу для поиска..." autocomplete="off">
+                <button class="btn btn-primary" id="searchBtn">Найти</button>
+            </div>
+            <div class="search-results-info" id="searchResultsInfo"></div>
+            <div class="search-results" id="searchResults">
+                <div class="search-placeholder">Введите слово для поиска вопросов</div>
             </div>
         </div>
     </div>

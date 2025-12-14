@@ -111,6 +111,12 @@ header h1 {
     border: 2px solid #4caf50;
 }
 
+.search-btn {
+    padding: 8px 20px;
+    font-size: 0.95em;
+    white-space: nowrap;
+}
+
 .online-icon {
     font-size: 1.2em;
     animation: pulse 2s infinite;
@@ -646,6 +652,197 @@ header h1 {
 #closeResultsBtn {
     width: 100%;
     margin-top: 20px;
+}
+
+/* Стили для поиска */
+.search-modal-content {
+    max-width: 900px;
+    width: 95%;
+    max-height: 90vh;
+}
+
+.search-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.search-modal-header h2 {
+    margin: 0;
+    color: #667eea;
+}
+
+.modal-close-btn {
+    background: #f5f5f5;
+    border: none;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    font-size: 1.5em;
+    cursor: pointer;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    line-height: 1;
+}
+
+.modal-close-btn:hover {
+    background: #e0e0e0;
+    color: #333;
+}
+
+.search-input-wrapper {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.search-input-wrapper input {
+    flex: 1;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1em;
+    transition: border-color 0.3s;
+}
+
+.search-input-wrapper input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.search-results-info {
+    margin-bottom: 15px;
+    color: #666;
+    font-size: 0.95em;
+}
+
+.search-results {
+    max-height: calc(90vh - 250px);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.search-placeholder {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+    padding: 40px 20px;
+}
+
+.search-result-item {
+    background: #f9f9f9;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 20px;
+    transition: all 0.3s;
+}
+
+.search-result-item:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.2);
+}
+
+.search-result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.search-result-number {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9em;
+}
+
+.search-result-category {
+    background: #e8edff;
+    color: #667eea;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+.search-result-question {
+    font-size: 1.1em;
+    line-height: 1.6;
+    color: #333;
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
+.search-result-answer {
+    background: #e8f5e9;
+    border-left: 4px solid #4caf50;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+.search-result-answer-label {
+    font-weight: 600;
+    color: #2e7d32;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+
+.search-result-answer-text {
+    color: #333;
+    font-size: 1em;
+    line-height: 1.5;
+}
+
+.search-results::-webkit-scrollbar {
+    width: 8px;
+}
+
+.search-results::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.search-results::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 4px;
+}
+
+.search-results::-webkit-scrollbar-thumb:hover {
+    background: #764ba2;
+}
+
+@media (max-width: 768px) {
+    .search-modal-content {
+        width: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+        margin: 0;
+    }
+    
+    .search-input-wrapper {
+        flex-direction: column;
+    }
+    
+    .search-input-wrapper button {
+        width: 100%;
+    }
+    
+    .search-results {
+        max-height: calc(100vh - 300px);
+    }
 }
 
 @media (max-width: 768px) {
