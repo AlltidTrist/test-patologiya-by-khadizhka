@@ -49,6 +49,14 @@ body {
     justify-content: flex-start;
 }
 
+main {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: calc(100vh - 200px);
+    padding: 20px 0;
+}
+
 header {
     background: white;
     border-radius: 15px;
