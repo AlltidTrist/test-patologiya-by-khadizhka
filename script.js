@@ -373,6 +373,41 @@ function closeResults() {
     document.getElementById('resultsModal').classList.remove('show');
 }
 
+// Начать тест заново
+function restartTest() {
+    // Закрываем модальное окно результатов
+    closeResults();
+    
+    // Сбрасываем все данные
+    userAnswers = {};
+    stats = {
+        correct: 0,
+        incorrect: 0,
+        skipped: 0
+    };
+    testStartTime = Date.now();
+    
+    // Сбрасываем флаги ответов на вопросы
+    questions.forEach(q => {
+        q.answered = false;
+    });
+    
+    // Возвращаемся к первому вопросу
+    currentQuestionIndex = 0;
+    
+    // Обновляем отображение
+    displayQuestion();
+    updateStats();
+    updateProgress();
+    updateQuestionsNavigation();
+    
+    // Прокручиваем страницу вверх
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
+
 // Создание навигации по вопросам
 function createQuestionsNavigation() {
     const navGrid = document.getElementById('navGrid');
@@ -488,6 +523,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Кнопка закрытия результатов
     document.getElementById('closeResultsBtn').addEventListener('click', closeResults);
+    
+    // Кнопка начала теста заново
+    document.getElementById('restartTestBtn').addEventListener('click', restartTest);
     
     // Закрытие модального окна при клике вне его
     document.getElementById('resultsModal').addEventListener('click', (e) => {

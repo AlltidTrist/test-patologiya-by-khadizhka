@@ -661,6 +661,16 @@ header h1 {
     border: 3px solid #0d47a1;
 }
 
+.result-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.result-buttons .btn {
+    flex: 1;
+}
+
 #closeResultsBtn {
     width: 100%;
     margin-top: 20px;
