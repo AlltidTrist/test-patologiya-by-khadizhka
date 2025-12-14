@@ -950,12 +950,12 @@ function performSearch() {
         // Проверяем, содержатся ли все слова поискового запроса как целые слова в вопросе
         const allWordsMatch = searchWords.every(word => {
             // Используем границы слов для точного совпадения
-            // \b - граница слова, но нужно учитывать кириллицу и другие символы
-            // Используем более точное регулярное выражение
-            const escapedWord = escapeRegex(word);
             // Ищем слово как целое: перед ним должен быть не буквенный символ или начало строки,
             // после - не буквенный символ или конец строки
-            const regex = new RegExp(`(^|[^\\p{L}])${escapedWord}([^\\p{L}]|$)`, 'ui');
+            const escapedWord = escapeRegex(word);
+            // Используем проверку границ: перед словом - не буква/цифра или начало, после - не буква/цифра или конец
+            // Поддерживаем кириллицу и латиницу
+            const regex = new RegExp(`(^|[^а-яёa-z0-9])${escapedWord}([^а-яёa-z0-9]|$)`, 'i');
             return regex.test(questionText);
         });
         
@@ -963,7 +963,7 @@ function performSearch() {
             // Вычисляем релевантность (количество совпадений целых слов)
             const matchCount = searchWords.reduce((count, word) => {
                 const escapedWord = escapeRegex(word);
-                const regex = new RegExp(`(^|[^\\p{L}])${escapedWord}([^\\p{L}]|$)`, 'gui');
+                const regex = new RegExp(`(^|[^а-яёa-z0-9])${escapedWord}([^а-яёa-z0-9]|$)`, 'gi');
                 const matches = questionText.match(regex);
                 return count + (matches ? matches.length : 0);
             }, 0);
@@ -1048,7 +1048,7 @@ function highlightSearchTerms(text, searchWords) {
         const escapedWord = escapeRegex(word);
         // Создаем regex для поиска целого слова (с границами слов)
         // Используем группы захвата для сохранения границ
-        const regex = new RegExp(`(^|[^\\p{L}])(${escapedWord})([^\\p{L}]|$)`, 'gui');
+        const regex = new RegExp(`(^|[^а-яёa-z0-9])(${escapedWord})([^а-яёa-z0-9]|$)`, 'gi');
         // Заменяем найденные слова на выделенные версии, сохраняя границы
         highlightedText = highlightedText.replace(regex, (match, before, wordMatch, after) => {
             return before + '<mark>' + wordMatch + '</mark>' + after;
