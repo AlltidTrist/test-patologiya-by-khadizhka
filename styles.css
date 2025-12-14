@@ -678,3 +678,25 @@ header h1 {
     }
 }
 
+/* Стили для футера */
+footer {
+    max-width: 100%;
+    box-sizing: border-box;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+footer p {
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.6;
+}
+
+footer a {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    display: inline-block;
+    max-width: 100%;
+}
+
