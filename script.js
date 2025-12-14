@@ -412,19 +412,28 @@ function updateQuestionsNavigation() {
             if (!navContent.classList.contains('collapsed')) {
                 setTimeout(() => {
                     // Прокручиваем только контейнер навигации, не всю страницу
-                    const navGrid = document.getElementById('navGrid');
-                    if (navGrid && item.offsetParent) {
-                        const itemRect = item.getBoundingClientRect();
-                        const navRect = navContent.getBoundingClientRect();
+                    try {
+                        const itemTop = item.offsetTop;
+                        const itemHeight = item.offsetHeight;
+                        const navScrollTop = navContent.scrollTop;
+                        const navHeight = navContent.clientHeight;
+                        const navScrollHeight = navContent.scrollHeight;
                         
                         // Проверяем, виден ли элемент в навигации
-                        if (itemRect.top < navRect.top || itemRect.bottom > navRect.bottom) {
-                            item.scrollIntoView({
-                                behavior: 'smooth',
-                                block: 'nearest',
-                                inline: 'nearest'
+                        const itemBottom = itemTop + itemHeight;
+                        const visibleTop = navScrollTop;
+                        const visibleBottom = navScrollTop + navHeight;
+                        
+                        if (itemTop < visibleTop || itemBottom > visibleBottom) {
+                            // Прокручиваем только внутри навигации
+                            const targetScroll = Math.max(0, Math.min(itemTop - 20, navScrollHeight - navHeight));
+                            navContent.scrollTo({
+                                top: targetScroll,
+                                behavior: 'smooth'
                             });
                         }
+                    } catch (e) {
+                        // Игнорируем ошибки прокрутки
                     }
                 }, 100);
             }
