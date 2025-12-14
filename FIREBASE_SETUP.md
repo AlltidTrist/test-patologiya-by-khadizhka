@@ -54,6 +54,11 @@ const firebaseConfig = {
     "online_users": {
       ".read": true,
       ".write": true
+    },
+    "chat_messages": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": ["timestamp"]
     }
   }
 }
@@ -70,6 +75,14 @@ const firebaseConfig = {
         ".write": true,
         ".validate": "newData.hasChildren(['online', 'lastSeen']) && newData.child('online').isBoolean() && newData.child('lastSeen').isNumber()"
       }
+    },
+    "chat_messages": {
+      "$messageId": {
+        ".read": true,
+        ".write": true,
+        ".validate": "newData.hasChildren(['userName', 'text', 'timestamp']) && newData.child('userName').isString() && newData.child('text').isString() && newData.child('timestamp').isNumber() && newData.child('text').val().length <= 500 && newData.child('userName').val().length <= 20"
+      },
+      ".indexOn": ["timestamp"]
     }
   }
 }
