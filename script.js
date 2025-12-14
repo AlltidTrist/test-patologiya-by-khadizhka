@@ -408,14 +408,24 @@ function updateQuestionsNavigation() {
         if (index === currentQuestionIndex) {
             item.classList.add('current');
             
-            // Прокручиваем к текущему вопросу, если навигация развернута
+            // Прокручиваем только внутри навигации, не всю страницу
             if (!navContent.classList.contains('collapsed')) {
                 setTimeout(() => {
-                    item.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'nearest',
-                        inline: 'nearest'
-                    });
+                    // Прокручиваем только контейнер навигации, не всю страницу
+                    const navGrid = document.getElementById('navGrid');
+                    if (navGrid && item.offsetParent) {
+                        const itemRect = item.getBoundingClientRect();
+                        const navRect = navContent.getBoundingClientRect();
+                        
+                        // Проверяем, виден ли элемент в навигации
+                        if (itemRect.top < navRect.top || itemRect.bottom > navRect.bottom) {
+                            item.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'nearest',
+                                inline: 'nearest'
+                            });
+                        }
+                    }
                 }, 100);
             }
         }
