@@ -671,11 +671,6 @@ header h1 {
     flex: 1;
 }
 
-#closeResultsBtn {
-    width: 100%;
-    margin-top: 20px;
-}
-
 /* Стили для поиска */
 .search-modal-content {
     max-width: 900px;
