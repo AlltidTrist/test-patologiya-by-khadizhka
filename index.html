@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тесты по патологической анатомии</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="side-background left-side"></div>
+    <div class="container">
+        <header>
+            <h1>Тесты по патологической анатомии</h1>
+            <div class="header-info">
+                <div class="category-selector">
+                    <label for="categoryFilter">Категория:</label>
+                    <select id="categoryFilter">
+                        <option value="all">Все категории</option>
+                        <option value="общий курс">Общий курс</option>
+                        <option value="частный курс">Частный курс</option>
+                    </select>
+                </div>
+                <div class="question-counter">
+                    <span id="questionNumber">1</span> / <span id="totalQuestions">522</span>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <!-- Панель навигации по вопросам -->
+            <div class="questions-navigation" id="questionsNavigation">
+                <div class="nav-header">
+                    <h3>Навигация по вопросам</h3>
+                    <button class="toggle-nav-btn" id="toggleNavBtn">Свернуть</button>
+                </div>
+                <div class="nav-content" id="navContent">
+                    <div class="nav-grid" id="navGrid">
+                        <!-- Номера вопросов будут добавлены через JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="question-card" id="questionCard">
+                <div class="question-header">
+                    <span class="category-badge" id="categoryBadge">Общий курс</span>
+                    <span class="question-id" id="questionId">Вопрос #1</span>
+                </div>
+                
+                <div class="question-text" id="questionText">
+                    Загрузка вопроса...
+                </div>
+
+                <div class="options-container" id="optionsContainer">
+                    <!-- Варианты ответов будут добавлены через JavaScript -->
+                </div>
+
+                <div class="feedback" id="feedback"></div>
+
+                <div class="navigation-buttons">
+                    <button id="prevBtn" class="btn btn-secondary" disabled>← Предыдущий</button>
+                    <button id="nextBtn" class="btn btn-primary">Следующий →</button>
+                </div>
+
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <div class="stats-panel">
+                <div class="stat-item">
+                    <span class="stat-label">Правильно:</span>
+                    <span class="stat-value correct-count" id="correctCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Неправильно:</span>
+                    <span class="stat-value incorrect-count" id="incorrectCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Пропущено:</span>
+                    <span class="stat-value" id="skippedCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <button id="finishTestBtn" class="btn btn-primary finish-btn">Завершить тест</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div class="side-background right-side"></div>
+
+    <!-- Модальное окно с результатами -->
+    <div class="modal-overlay" id="resultsModal">
+        <div class="modal-content">
+            <h2>Результаты теста</h2>
+            <div class="results-stats">
+                <div class="result-item">
+                    <span class="result-label">Правильных ответов:</span>
+                    <span class="result-value correct" id="resultCorrect">0</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Неправильных ответов:</span>
+                    <span class="result-value incorrect" id="resultIncorrect">0</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Время прохождения:</span>
+                    <span class="result-value" id="resultTime">0:00</span>
+                </div>
+                <div class="result-item percentage">
+                    <span class="result-label">Процент правильных:</span>
+                    <span class="result-value percentage-value" id="resultPercentage">0%</span>
+                </div>
+            </div>
+            <div class="result-message" id="resultMessage"></div>
+            <button class="btn btn-primary" id="closeResultsBtn">Закрыть</button>
+        </div>
+    </div>
+
+    <footer style="text-align: center; padding: 30px 20px; color: #000; font-size: 0.95em; position: relative; z-index: 2; margin-top: auto;">
+        <p style="margin: 0;">
+            Этот сайт сделал <a href="https://t.me/Alltid_Trist" target="_blank" rel="noopener noreferrer" style="color: #000; text-decoration: underline; font-weight: 600;">Данечка</a>
+        </p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
