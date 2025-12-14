@@ -9338,11 +9338,6 @@
         "letter": "e",
         "text": "хронический миелолейкоз",
         "correct": false
-      },
-      {
-        "letter": "f",
-        "text": "Ответы на тесты (общий курс)",
-        "correct": false
       }
     ],
     "correct": "c",
@@ -16702,11 +16697,6 @@
       {
         "letter": "e",
         "text": "панцирный",
-        "correct": false
-      },
-      {
-        "letter": "f",
-        "text": "Ответы на тесты (частный курс)",
         "correct": false
       }
     ],
