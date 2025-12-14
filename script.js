@@ -506,7 +506,14 @@ function initOnlineCounter() {
     try {
         // Проверяем, инициализирован ли Firebase
         if (typeof firebase === 'undefined' || !firebase.database) {
-            console.warn('Firebase не инициализирован. Используется упрощенный счетчик.');
+            console.warn('Firebase SDK не загружен. Используется упрощенный счетчик.');
+            initSimpleCounter();
+            return;
+        }
+        
+        // Проверяем, что Firebase приложение инициализировано
+        if (!firebase.apps || firebase.apps.length === 0) {
+            console.warn('Firebase приложение не инициализировано. Используется упрощенный счетчик.');
             initSimpleCounter();
             return;
         }

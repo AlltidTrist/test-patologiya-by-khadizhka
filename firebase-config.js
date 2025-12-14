@@ -10,13 +10,31 @@ const firebaseConfig = {
 };
 
 // Инициализация Firebase (compat версия для совместимости)
-if (typeof firebase !== 'undefined') {
-    try {
-        firebase.initializeApp(firebaseConfig);
-        console.log('Firebase инициализирован успешно');
-    } catch (error) {
-        console.error('Ошибка инициализации Firebase:', error);
+// Ждем полной загрузки Firebase SDK
+(function() {
+    function initFirebase() {
+        if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length === 0) {
+            try {
+                firebase.initializeApp(firebaseConfig);
+                console.log('Firebase инициализирован успешно');
+                window.firebaseInitialized = true;
+            } catch (error) {
+                console.error('Ошибка инициализации Firebase:', error);
+                window.firebaseInitialized = false;
+            }
+        } else if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
+            console.log('Firebase уже инициализирован');
+            window.firebaseInitialized = true;
+        } else {
+            // Повторяем попытку через 100мс, если Firebase еще не загружен
+            setTimeout(initFirebase, 100);
+        }
     }
-} else {
-    console.warn('Firebase SDK не загружен');
-}
+    
+    // Запускаем инициализацию после загрузки DOM
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initFirebase);
+    } else {
+        initFirebase();
+    }
+})();
