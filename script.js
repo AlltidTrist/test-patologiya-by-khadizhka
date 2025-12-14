@@ -490,6 +490,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Инициализация счетчика онлайн
     initOnlineCounter();
+    
+    // Инициализация чата
+    initChat();
 });
 
 // Функции для счетчика онлайн пользователей с Firebase
@@ -665,5 +668,201 @@ function initSimpleCounter() {
             }
         }
     }, 5000);
+}
+
+// Функции для чата
+let chatUserName = null;
+let chatMessagesRef = null;
+let chatNameSet = false;
+
+function initChat() {
+    // Получаем сохраненное имя пользователя
+    chatUserName = localStorage.getItem('chat_user_name');
+    if (chatUserName) {
+        chatNameSet = true;
+        document.getElementById('chatNameInputWrapper').style.display = 'none';
+        document.getElementById('chatMessageInputWrapper').style.display = 'flex';
+    }
+    
+    // Обработчики для чата
+    document.getElementById('chatSetNameBtn').addEventListener('click', setChatUserName);
+    document.getElementById('chatSendBtn').addEventListener('click', sendChatMessage);
+    document.getElementById('chatToggleBtn').addEventListener('click', toggleChat);
+    document.getElementById('chatMessageInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            sendChatMessage();
+        }
+    });
+    document.getElementById('chatUserName').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            setChatUserName();
+        }
+    });
+    
+    // Инициализация Firebase чата
+    if (typeof firebase !== 'undefined' && firebase.database && firebase.apps && firebase.apps.length > 0) {
+        initFirebaseChat();
+    } else {
+        console.warn('Firebase не инициализирован для чата');
+    }
+}
+
+function setChatUserName() {
+    const nameInput = document.getElementById('chatUserName');
+    const name = nameInput.value.trim();
+    
+    if (name.length < 2) {
+        alert('Имя должно содержать минимум 2 символа');
+        return;
+    }
+    
+    if (name.length > 20) {
+        alert('Имя не должно превышать 20 символов');
+        return;
+    }
+    
+    chatUserName = name;
+    chatNameSet = true;
+    localStorage.setItem('chat_user_name', chatUserName);
+    
+    document.getElementById('chatNameInputWrapper').style.display = 'none';
+    document.getElementById('chatMessageInputWrapper').style.display = 'flex';
+    
+    // Инициализируем чат после установки имени
+    if (typeof firebase !== 'undefined' && firebase.database && firebase.apps && firebase.apps.length > 0) {
+        initFirebaseChat();
+    }
+}
+
+function initFirebaseChat() {
+    if (!chatNameSet || !chatUserName) {
+        return;
+    }
+    
+    try {
+        const database = firebase.database();
+        chatMessagesRef = database.ref('chat_messages');
+        
+        // Загружаем последние 50 сообщений
+        chatMessagesRef.limitToLast(50).on('value', (snapshot) => {
+            const messagesContainer = document.getElementById('chatMessages');
+            messagesContainer.innerHTML = '';
+            
+            if (snapshot.exists()) {
+                const messages = snapshot.val();
+                const messagesArray = [];
+                
+                // Преобразуем объект в массив
+                for (let key in messages) {
+                    if (messages.hasOwnProperty(key)) {
+                        messagesArray.push({
+                            id: key,
+                            ...messages[key]
+                        });
+                    }
+                }
+                
+                // Сортируем по времени
+                messagesArray.sort((a, b) => a.timestamp - b.timestamp);
+                
+                // Отображаем сообщения
+                messagesArray.forEach(msg => {
+                    addMessageToChat(msg.userName, msg.text, msg.timestamp, msg.userName === chatUserName);
+                });
+            } else {
+                messagesContainer.innerHTML = '<div class="chat-welcome">Пока нет сообщений. Будьте первым!</div>';
+            }
+            
+            // Прокручиваем вниз
+            scrollChatToBottom();
+        });
+        
+    } catch (error) {
+        console.error('Ошибка инициализации чата:', error);
+    }
+}
+
+function sendChatMessage() {
+    if (!chatNameSet || !chatUserName) {
+        alert('Сначала введите ваше имя');
+        return;
+    }
+    
+    const messageInput = document.getElementById('chatMessageInput');
+    const messageText = messageInput.value.trim();
+    
+    if (messageText.length === 0) {
+        return;
+    }
+    
+    if (messageText.length > 500) {
+        alert('Сообщение не должно превышать 500 символов');
+        return;
+    }
+    
+    if (!chatMessagesRef) {
+        alert('Чат не инициализирован. Обновите страницу.');
+        return;
+    }
+    
+    try {
+        // Отправляем сообщение в Firebase
+        chatMessagesRef.push({
+            userName: chatUserName,
+            text: messageText,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+        
+        // Очищаем поле ввода
+        messageInput.value = '';
+        
+    } catch (error) {
+        console.error('Ошибка отправки сообщения:', error);
+        alert('Не удалось отправить сообщение. Попробуйте еще раз.');
+    }
+}
+
+function addMessageToChat(userName, text, timestamp, isOwn) {
+    const messagesContainer = document.getElementById('chatMessages');
+    
+    // Удаляем приветственное сообщение, если оно есть
+    const welcome = messagesContainer.querySelector('.chat-welcome');
+    if (welcome) {
+        welcome.remove();
+    }
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${isOwn ? 'own' : 'other'}`;
+    
+    const time = new Date(timestamp);
+    const timeString = time.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    
+    messageDiv.innerHTML = `
+        <div class="chat-message-name">${escapeHtml(userName)}</div>
+        <div class="chat-message-text">${escapeHtml(text)}</div>
+        <div class="chat-message-time">${timeString}</div>
+    `;
+    
+    messagesContainer.appendChild(messageDiv);
+    scrollChatToBottom();
+}
+
+function scrollChatToBottom() {
+    const messagesContainer = document.getElementById('chatMessages');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function toggleChat() {
+    const chatContainer = document.getElementById('chatContainer');
+    const toggleBtn = document.getElementById('chatToggleBtn');
+    
+    chatContainer.classList.toggle('collapsed');
+    toggleBtn.textContent = chatContainer.classList.contains('collapsed') ? '+' : '−';
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 

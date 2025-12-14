@@ -91,6 +91,29 @@
     </div>
     <div class="side-background right-side"></div>
 
+    <!-- Чат -->
+    <div class="chat-container" id="chatContainer">
+        <div class="chat-header">
+            <h3>💬 Чат</h3>
+            <button class="chat-toggle-btn" id="chatToggleBtn">−</button>
+        </div>
+        <div class="chat-content" id="chatContent">
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-welcome">Добро пожаловать в чат! Выберите имя и начните общение.</div>
+            </div>
+            <div class="chat-input-area">
+                <div class="chat-name-input-wrapper" id="chatNameInputWrapper">
+                    <input type="text" id="chatUserName" placeholder="Введите ваше имя" maxlength="20">
+                    <button id="chatSetNameBtn" class="btn btn-primary">Сохранить</button>
+                </div>
+                <div class="chat-message-input-wrapper" id="chatMessageInputWrapper" style="display: none;">
+                    <input type="text" id="chatMessageInput" placeholder="Введите сообщение..." maxlength="500">
+                    <button id="chatSendBtn" class="btn btn-primary">Отправить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Модальное окно с результатами -->
     <div class="modal-overlay" id="resultsModal">
         <div class="modal-content">
