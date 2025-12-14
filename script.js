@@ -10,6 +10,13 @@ let stats = {
 };
 let testStartTime = null; // Время начала теста
 
+// Счетчик онлайн пользователей
+let onlineUsers = 0;
+const ONLINE_STORAGE_KEY = 'online_users';
+const USER_ID_KEY = 'user_id';
+const LAST_ACTIVITY_KEY = 'last_activity';
+const ACTIVITY_TIMEOUT = 30000; // 30 секунд - время неактивности для удаления из списка
+
 // Функция преобразования буквы в цифру для отображения
 function letterToNumber(letter) {
     const mapping = {
@@ -480,5 +487,91 @@ document.addEventListener('DOMContentLoaded', () => {
             closeResults();
         }
     });
+    
+    // Инициализация счетчика онлайн
+    initOnlineCounter();
 });
+
+// Функции для счетчика онлайн пользователей
+function generateUserId() {
+    return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+function initOnlineCounter() {
+    // Генерируем или получаем ID пользователя
+    let userId = localStorage.getItem('user_id');
+    if (!userId) {
+        userId = generateUserId();
+        localStorage.setItem('user_id', userId);
+    }
+    
+    // Обновляем активность пользователя
+    updateUserActivity();
+    
+    // Обновляем счетчик каждые 5 секунд
+    setInterval(updateOnlineCounter, 5000);
+    
+    // Обновляем активность при действиях пользователя
+    ['mousemove', 'keypress', 'scroll', 'click'].forEach(event => {
+        document.addEventListener(event, updateUserActivity, { passive: true });
+    });
+    
+    // Обновляем счетчик при загрузке страницы
+    updateOnlineCounter();
+}
+
+function updateUserActivity() {
+    const userId = localStorage.getItem('user_id');
+    if (userId) {
+        const activity = {
+            userId: userId,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('last_activity', JSON.stringify(activity));
+    }
+}
+
+function updateOnlineCounter() {
+    try {
+        const now = Date.now();
+        
+        // Простая эмуляция для статического сайта
+        // В реальности нужен сервер или Firebase для точного подсчета
+        const storedCount = localStorage.getItem('estimated_online');
+        let onlineUsers;
+        
+        if (storedCount) {
+            const count = parseInt(storedCount);
+            const lastUpdate = parseInt(localStorage.getItem('last_online_update') || '0');
+            const timeDiff = now - lastUpdate;
+            
+            // Если прошло больше 10 секунд, немного изменяем число
+            if (timeDiff > 10000) {
+                const variation = Math.floor(Math.random() * 3) - 1; // -1, 0, или 1
+                onlineUsers = Math.max(1, count + variation);
+                localStorage.setItem('estimated_online', onlineUsers.toString());
+                localStorage.setItem('last_online_update', now.toString());
+            } else {
+                onlineUsers = count;
+            }
+        } else {
+            // Первый запуск - случайное число от 1 до 5
+            onlineUsers = Math.floor(Math.random() * 5) + 1;
+            localStorage.setItem('estimated_online', onlineUsers.toString());
+            localStorage.setItem('last_online_update', now.toString());
+        }
+        
+        // Обновляем отображение
+        const onlineCountElement = document.getElementById('onlineCount');
+        if (onlineCountElement) {
+            onlineCountElement.textContent = onlineUsers;
+        }
+    } catch (error) {
+        console.error('Ошибка обновления счетчика онлайн:', error);
+        const onlineCountElement = document.getElementById('onlineCount');
+        if (onlineCountElement) {
+            onlineCountElement.textContent = '1';
+        }
+    }
+}
 

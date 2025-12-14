@@ -98,6 +98,38 @@ header h1 {
     color: #667eea;
 }
 
+.online-counter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1em;
+    font-weight: 600;
+    color: #4caf50;
+    background: #e8f5e9;
+    padding: 8px 15px;
+    border-radius: 20px;
+    border: 2px solid #4caf50;
+}
+
+.online-icon {
+    font-size: 1.2em;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+#onlineCount {
+    font-weight: 700;
+    color: #2e7d32;
+}
+
 .question-card {
     background: white;
     border-radius: 15px;
