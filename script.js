@@ -947,13 +947,23 @@ function performSearch() {
         const questionText = normalizeText(question.question);
         const questionNumber = index + 1;
         
-        // Проверяем, содержатся ли все слова поискового запроса в вопросе
-        const allWordsMatch = searchWords.every(word => questionText.includes(word));
+        // Проверяем, содержатся ли все слова поискового запроса как целые слова в вопросе
+        const allWordsMatch = searchWords.every(word => {
+            // Используем границы слов для точного совпадения
+            // \b - граница слова, но нужно учитывать кириллицу и другие символы
+            // Используем более точное регулярное выражение
+            const escapedWord = escapeRegex(word);
+            // Ищем слово как целое: перед ним должен быть не буквенный символ или начало строки,
+            // после - не буквенный символ или конец строки
+            const regex = new RegExp(`(^|[^\\p{L}])${escapedWord}([^\\p{L}]|$)`, 'ui');
+            return regex.test(questionText);
+        });
         
         if (allWordsMatch) {
-            // Вычисляем релевантность (количество совпадений)
+            // Вычисляем релевантность (количество совпадений целых слов)
             const matchCount = searchWords.reduce((count, word) => {
-                const regex = new RegExp(word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                const escapedWord = escapeRegex(word);
+                const regex = new RegExp(`(^|[^\\p{L}])${escapedWord}([^\\p{L}]|$)`, 'gui');
                 const matches = questionText.match(regex);
                 return count + (matches ? matches.length : 0);
             }, 0);
@@ -977,6 +987,11 @@ function performSearch() {
 function normalizeText(text) {
     // Приводим к нижнему регистру и убираем лишние пробелы
     return text.toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+function escapeRegex(str) {
+    // Экранируем специальные символы регулярных выражений
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function displaySearchResults(results, searchTerm) {
@@ -1027,14 +1042,17 @@ function displaySearchResults(results, searchTerm) {
 function highlightSearchTerms(text, searchWords) {
     let highlightedText = escapeHtml(text);
     
-    // Выделяем каждое слово из поискового запроса
+    // Выделяем каждое слово из поискового запроса как целое слово
     searchWords.forEach(word => {
         // Экранируем специальные символы для regex
-        const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        // Создаем regex для поиска слова (с учетом границ слов для более точного поиска)
-        const regex = new RegExp(`(${escapedWord})`, 'gi');
-        // Заменяем найденные слова на выделенные версии
-        highlightedText = highlightedText.replace(regex, '<mark>$1</mark>');
+        const escapedWord = escapeRegex(word);
+        // Создаем regex для поиска целого слова (с границами слов)
+        // Используем группы захвата для сохранения границ
+        const regex = new RegExp(`(^|[^\\p{L}])(${escapedWord})([^\\p{L}]|$)`, 'gui');
+        // Заменяем найденные слова на выделенные версии, сохраняя границы
+        highlightedText = highlightedText.replace(regex, (match, before, wordMatch, after) => {
+            return before + '<mark>' + wordMatch + '</mark>' + after;
+        });
     });
     
     return highlightedText;
