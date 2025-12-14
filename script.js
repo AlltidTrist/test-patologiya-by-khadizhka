@@ -855,9 +855,21 @@ function scrollChatToBottom() {
 function toggleChat() {
     const chatContainer = document.getElementById('chatContainer');
     const toggleBtn = document.getElementById('chatToggleBtn');
+    const isCollapsed = chatContainer.classList.contains('collapsed');
     
-    chatContainer.classList.toggle('collapsed');
-    toggleBtn.textContent = chatContainer.classList.contains('collapsed') ? '+' : '−';
+    if (isCollapsed) {
+        // Разворачиваем чат
+        chatContainer.classList.remove('collapsed');
+        toggleBtn.textContent = '−';
+        // Прокручиваем вниз при открытии
+        setTimeout(() => {
+            scrollChatToBottom();
+        }, 100);
+    } else {
+        // Сворачиваем чат
+        chatContainer.classList.add('collapsed');
+        toggleBtn.textContent = '+';
+    }
 }
 
 function escapeHtml(text) {
