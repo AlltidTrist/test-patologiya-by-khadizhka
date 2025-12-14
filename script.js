@@ -492,86 +492,152 @@ document.addEventListener('DOMContentLoaded', () => {
     initOnlineCounter();
 });
 
-// Функции для счетчика онлайн пользователей
+// Функции для счетчика онлайн пользователей с Firebase
+let userId = null;
+let userRef = null;
+let onlineUsersRef = null;
+let isOnline = false;
+
 function generateUserId() {
     return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
 function initOnlineCounter() {
-    // Генерируем или получаем ID пользователя
-    let userId = localStorage.getItem('user_id');
-    if (!userId) {
-        userId = generateUserId();
-        localStorage.setItem('user_id', userId);
+    try {
+        // Проверяем, инициализирован ли Firebase
+        if (typeof firebase === 'undefined' || !firebase.database) {
+            console.warn('Firebase не инициализирован. Используется упрощенный счетчик.');
+            initSimpleCounter();
+            return;
+        }
+
+        const database = firebase.database();
+        
+        // Генерируем или получаем ID пользователя
+        userId = localStorage.getItem('user_id');
+        if (!userId) {
+            userId = generateUserId();
+            localStorage.setItem('user_id', userId);
+        }
+        
+        // Ссылки на Firebase
+        userRef = database.ref('online_users/' + userId);
+        onlineUsersRef = database.ref('online_users');
+        
+        // Устанавливаем пользователя как онлайн
+        userRef.set({
+            online: true,
+            lastSeen: firebase.database.ServerValue.TIMESTAMP
+        });
+        
+        // Удаляем пользователя при закрытии страницы
+        userRef.onDisconnect().remove();
+        
+        // Обновляем время последней активности каждые 10 секунд
+        setInterval(() => {
+            if (userRef && isOnline) {
+                userRef.update({
+                    lastSeen: firebase.database.ServerValue.TIMESTAMP
+                });
+            }
+        }, 10000);
+        
+        // Слушаем изменения количества онлайн пользователей
+        onlineUsersRef.on('value', (snapshot) => {
+            if (snapshot.exists()) {
+                const users = snapshot.val();
+                const now = Date.now();
+                let count = 0;
+                
+                // Подсчитываем активных пользователей (активны в последние 30 секунд)
+                for (let key in users) {
+                    const user = users[key];
+                    if (user.online && user.lastSeen) {
+                        const timeDiff = now - user.lastSeen;
+                        if (timeDiff < 30000) { // 30 секунд
+                            count++;
+                        }
+                    }
+                }
+                
+                // Обновляем отображение
+                const onlineCountElement = document.getElementById('onlineCount');
+                if (onlineCountElement) {
+                    onlineCountElement.textContent = count;
+                }
+                
+                isOnline = true;
+            } else {
+                // Нет пользователей
+                const onlineCountElement = document.getElementById('onlineCount');
+                if (onlineCountElement) {
+                    onlineCountElement.textContent = '1';
+                }
+            }
+        });
+        
+        // Обновляем активность при действиях пользователя
+        ['mousemove', 'keypress', 'scroll', 'click', 'touchstart'].forEach(event => {
+            document.addEventListener(event, updateUserActivity, { passive: true });
+        });
+        
+    } catch (error) {
+        console.error('Ошибка инициализации Firebase счетчика:', error);
+        initSimpleCounter();
     }
-    
-    // Обновляем активность пользователя
-    updateUserActivity();
-    
-    // Обновляем счетчик каждые 5 секунд
-    setInterval(updateOnlineCounter, 5000);
-    
-    // Обновляем активность при действиях пользователя
-    ['mousemove', 'keypress', 'scroll', 'click'].forEach(event => {
-        document.addEventListener(event, updateUserActivity, { passive: true });
-    });
-    
-    // Обновляем счетчик при загрузке страницы
-    updateOnlineCounter();
 }
 
 function updateUserActivity() {
-    const userId = localStorage.getItem('user_id');
-    if (userId) {
-        const activity = {
-            userId: userId,
-            timestamp: Date.now()
-        };
-        localStorage.setItem('last_activity', JSON.stringify(activity));
+    if (userRef && isOnline) {
+        userRef.update({
+            lastSeen: firebase.database.ServerValue.TIMESTAMP
+        });
     }
 }
 
-function updateOnlineCounter() {
-    try {
-        const now = Date.now();
+// Упрощенный счетчик для случая, если Firebase не настроен
+function initSimpleCounter() {
+    const now = Date.now();
+    const storedCount = localStorage.getItem('estimated_online');
+    let onlineUsers;
+    
+    if (storedCount) {
+        const count = parseInt(storedCount);
+        const lastUpdate = parseInt(localStorage.getItem('last_online_update') || '0');
+        const timeDiff = now - lastUpdate;
         
-        // Простая эмуляция для статического сайта
-        // В реальности нужен сервер или Firebase для точного подсчета
-        const storedCount = localStorage.getItem('estimated_online');
-        let onlineUsers;
-        
-        if (storedCount) {
-            const count = parseInt(storedCount);
-            const lastUpdate = parseInt(localStorage.getItem('last_online_update') || '0');
-            const timeDiff = now - lastUpdate;
-            
-            // Если прошло больше 10 секунд, немного изменяем число
-            if (timeDiff > 10000) {
-                const variation = Math.floor(Math.random() * 3) - 1; // -1, 0, или 1
-                onlineUsers = Math.max(1, count + variation);
-                localStorage.setItem('estimated_online', onlineUsers.toString());
-                localStorage.setItem('last_online_update', now.toString());
-            } else {
-                onlineUsers = count;
-            }
-        } else {
-            // Первый запуск - случайное число от 1 до 5
-            onlineUsers = Math.floor(Math.random() * 5) + 1;
+        if (timeDiff > 10000) {
+            const variation = Math.floor(Math.random() * 3) - 1;
+            onlineUsers = Math.max(1, count + variation);
             localStorage.setItem('estimated_online', onlineUsers.toString());
             localStorage.setItem('last_online_update', now.toString());
+        } else {
+            onlineUsers = count;
         }
-        
-        // Обновляем отображение
-        const onlineCountElement = document.getElementById('onlineCount');
-        if (onlineCountElement) {
-            onlineCountElement.textContent = onlineUsers;
-        }
-    } catch (error) {
-        console.error('Ошибка обновления счетчика онлайн:', error);
-        const onlineCountElement = document.getElementById('onlineCount');
-        if (onlineCountElement) {
-            onlineCountElement.textContent = '1';
-        }
+    } else {
+        onlineUsers = Math.floor(Math.random() * 5) + 1;
+        localStorage.setItem('estimated_online', onlineUsers.toString());
+        localStorage.setItem('last_online_update', now.toString());
     }
+    
+    const onlineCountElement = document.getElementById('onlineCount');
+    if (onlineCountElement) {
+        onlineCountElement.textContent = onlineUsers;
+    }
+    
+    // Обновляем каждые 5 секунд
+    setInterval(() => {
+        const stored = localStorage.getItem('estimated_online');
+        if (stored) {
+            const count = parseInt(stored);
+            const variation = Math.floor(Math.random() * 3) - 1;
+            const newCount = Math.max(1, count + variation);
+            localStorage.setItem('estimated_online', newCount.toString());
+            localStorage.setItem('last_online_update', Date.now().toString());
+            if (onlineCountElement) {
+                onlineCountElement.textContent = newCount;
+            }
+        }
+    }, 5000);
 }
 
