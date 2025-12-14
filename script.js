@@ -920,7 +920,7 @@ function initSearch() {
 
 function performSearch() {
     const searchInput = document.getElementById('searchInput');
-    const searchTerm = searchInput.value.trim().toLowerCase();
+    const searchTerm = searchInput.value.trim();
     const resultsContainer = document.getElementById('searchResults');
     const resultsInfo = document.getElementById('searchResultsInfo');
     
@@ -930,40 +930,53 @@ function performSearch() {
         return;
     }
     
-    // Поиск по вопросам и вариантам ответов
+    // Нормализуем поисковый запрос
+    const normalizedSearchTerm = normalizeText(searchTerm);
+    const searchWords = normalizedSearchTerm.split(/\s+/).filter(word => word.length > 0);
+    
+    if (searchWords.length === 0) {
+        resultsContainer.innerHTML = '<div class="search-placeholder">Введите корректный поисковый запрос</div>';
+        resultsInfo.textContent = '';
+        return;
+    }
+    
+    // Поиск только по тексту вопроса
     const results = [];
     
     questions.forEach((question, index) => {
-        const questionText = question.question.toLowerCase();
+        const questionText = normalizeText(question.question);
         const questionNumber = index + 1;
         
-        // Поиск в тексте вопроса
-        if (questionText.includes(searchTerm)) {
+        // Проверяем, содержатся ли все слова поискового запроса в вопросе
+        const allWordsMatch = searchWords.every(word => questionText.includes(word));
+        
+        if (allWordsMatch) {
+            // Вычисляем релевантность (количество совпадений)
+            const matchCount = searchWords.reduce((count, word) => {
+                const regex = new RegExp(word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                const matches = questionText.match(regex);
+                return count + (matches ? matches.length : 0);
+            }, 0);
+            
             results.push({
                 question: question,
                 number: questionNumber,
-                matchType: 'question'
-            });
-        } else {
-            // Поиск в вариантах ответов
-            question.options.forEach(option => {
-                if (option.text.toLowerCase().includes(searchTerm)) {
-                    // Проверяем, не добавлен ли уже этот вопрос
-                    const alreadyAdded = results.some(r => r.number === questionNumber);
-                    if (!alreadyAdded) {
-                        results.push({
-                            question: question,
-                            number: questionNumber,
-                            matchType: 'option'
-                        });
-                    }
-                }
+                matchCount: matchCount,
+                searchWords: searchWords
             });
         }
     });
     
+    // Сортируем по релевантности (больше совпадений = выше)
+    results.sort((a, b) => b.matchCount - a.matchCount);
+    
     // Отображаем результаты
     displaySearchResults(results, searchTerm);
+}
+
+function normalizeText(text) {
+    // Приводим к нижнему регистру и убираем лишние пробелы
+    return text.toLowerCase().replace(/\s+/g, ' ').trim();
 }
 
 function displaySearchResults(results, searchTerm) {
@@ -986,6 +999,9 @@ function displaySearchResults(results, searchTerm) {
         const correctAnswerText = correctOption ? correctOption.text : 'Ответ не найден';
         const correctAnswerNumber = letterToNumber(question.correct);
         
+        // Выделяем найденные слова в тексте вопроса
+        const highlightedQuestion = highlightSearchTerms(question.question, result.searchWords);
+        
         const resultItem = document.createElement('div');
         resultItem.className = 'search-result-item';
         
@@ -994,7 +1010,7 @@ function displaySearchResults(results, searchTerm) {
                 <span class="search-result-number">Вопрос #${result.number}</span>
                 <span class="search-result-category">${question.category}</span>
             </div>
-            <div class="search-result-question">${escapeHtml(question.question)}</div>
+            <div class="search-result-question">${highlightedQuestion}</div>
             <div class="search-result-answer">
                 <div class="search-result-answer-label">✓ Правильный ответ (${correctAnswerNumber}):</div>
                 <div class="search-result-answer-text">${escapeHtml(correctAnswerText)}</div>
@@ -1006,5 +1022,21 @@ function displaySearchResults(results, searchTerm) {
     
     // Прокручиваем вверх
     resultsContainer.scrollTop = 0;
+}
+
+function highlightSearchTerms(text, searchWords) {
+    let highlightedText = escapeHtml(text);
+    
+    // Выделяем каждое слово из поискового запроса
+    searchWords.forEach(word => {
+        // Экранируем специальные символы для regex
+        const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // Создаем regex для поиска слова (с учетом границ слов для более точного поиска)
+        const regex = new RegExp(`(${escapedWord})`, 'gi');
+        // Заменяем найденные слова на выделенные версии
+        highlightedText = highlightedText.replace(regex, '<mark>$1</mark>');
+    });
+    
+    return highlightedText;
 }
 
